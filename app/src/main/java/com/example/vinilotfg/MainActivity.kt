@@ -4,18 +4,25 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.vinilotfg.ui.theme.ViniloTFGTheme
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.*
+import com.example.vinilotfg.ui.theme.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+/* ---------------- ACTIVITY ---------------- */
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,23 +38,16 @@ class MainActivity : ComponentActivity() {
                         startDestination = "inicio",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        // Pantalla de inicio
                         composable("inicio") {
                             InicioScreen(navController)
                         }
-
-                        // Pantalla de registro
                         composable("register") {
                             Registro(navController)
                         }
-
-                        // Tienda para usuario registrado
                         composable("store/{username}") { backStackEntry ->
                             val username = backStackEntry.arguments?.getString("username")
                             StoreScreen(username)
                         }
-
-                        // Tienda para invitado
                         composable("store_guest") {
                             StoreScreen(null)
                         }
@@ -58,6 +58,28 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/* ---------------- HEADER ---------------- */
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppHeader(title: String) {
+    TopAppBar(
+        title = {
+            Text(
+                text = title,
+                style = LogoTextStyle,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = ColorHeader
+        )
+    )
+}
+
+/* ---------------- PREVIEW ---------------- */
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun InicioScreenPreview() {
@@ -66,81 +88,126 @@ fun InicioScreenPreview() {
         InicioScreen(navController)
     }
 }
+
+/* ---------------- PANTALLA INICIO ---------------- */
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InicioScreen(navController: androidx.navigation.NavController) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(20.dp)
+    // Definimos el degradado de fondo
+    val fondoDegradado = Brush.linearGradient(
+        0.0f to Color(0xFF071A27),
+        1.0f to Color(0xFF1A3A4D),
+        start = Offset(0f, 0f),
+        end = Offset(0f, Float.POSITIVE_INFINITY)
+    )
+
+    Scaffold(
+        // Ponemos el contenedor del Scaffold transparente para que mande el Box
+        containerColor = Color.Transparent,
+        topBar = {
+            AppHeader(title = "Vinyl Sounds")
+        }
+    ) { paddingValores -> // <--- Este es el innerPadding que entrega el Scaffold
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(brush = fondoDegradado),
+            contentAlignment = Alignment.Center
         ) {
-
-            Text(
-                text = "Vinyl Sounds",
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            // Campo de usuario
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email o usario") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(0.8f)
-            )
-
-            // Campo de contraseña
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Contraseña") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(0.8f)
-            )
-
-
-
-            // Botón Entrar (usuario)
-            // Fila con Entrar y Registrarse
-            Row(
-                modifier = Modifier.fillMaxWidth(0.8f),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .padding(paddingValores) // <--- USAMOS EL PADDING AQUÍ PARA EL CONTENIDO
+                    .padding(20.dp)          // Padding extra para los bordes
             ) {
-                Button(
-                    onClick = {
-                        if (email.isNotBlank()) {
-                            navController.navigate("store/$email")
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
+
+                Text(
+                    text = "Bienvenido de nuevo",
+                    color = Purple60,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+
+                Text(
+                    text = "Ingresa tus credenciales",
+                    color = TextoBlanco,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    placeholder = { Text("Email o usuario", color = Color.LightGray) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextoBlanco,
+                        unfocusedTextColor = TextoBlanco,
+                        focusedBorderColor = Color(0xFFA350F9), // Morado del logo
+                        unfocusedBorderColor = Color.Gray
+                    )
+                )
+
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    placeholder = { Text("Contraseña", color = Color.LightGray) },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextoBlanco,
+                        unfocusedTextColor = TextoBlanco,
+                        focusedBorderColor = Color(0xFFA350F9),
+                        unfocusedBorderColor = Color.Gray
+                    )
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Entrar")
+                    Button(
+                        onClick = {
+                            if (email.isNotBlank()) {
+                                navController.navigate("store/$email")
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Rosa)
+                    ) {
+                        Text("Iniciar sesión")
+                    }
+
+                    Button(
+                        onClick = { navController.navigate("register") },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Rosa)
+                    ) {
+                        Text("Registrarse")
+                    }
                 }
 
                 Button(
-                    onClick = { navController.navigate("register") },
-                    modifier = Modifier.weight(1f)
+                    onClick = { navController.navigate("store_guest") },
+                    modifier = Modifier.fillMaxWidth(0.8f),
+                    shape = RoundedCornerShape(6.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ColorTranparente)
                 ) {
-                    Text("Registrarse")
+                    Text("Entrar como invitado")
                 }
             }
-
-// Botón Invitado debajo
-            Button(
-                onClick = { navController.navigate("store_guest") },
-                modifier = Modifier.fillMaxWidth(0.8f)
-            ) {
-                Text("Entrar como invitado")
-            }
-
         }
     }
 }
+

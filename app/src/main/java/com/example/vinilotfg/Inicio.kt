@@ -75,7 +75,7 @@ fun VinylCarouselItem(
                 scaleY = scale
                 this.alpha = alpha
             },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(25.dp),
         elevation = CardDefaults.cardElevation(8.dp)
     ) {
         Image(
