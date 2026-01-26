@@ -4,8 +4,10 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
@@ -45,23 +47,22 @@ fun StorePreviewFakeData() {
 fun StoreScreen(username: String?) {
 
     var searchQuery by remember { mutableStateOf("") }
-    var isGrid by remember { mutableStateOf(false) } // Estado para cambiar entre lista/grid
+    var isGrid by remember { mutableStateOf(false) }
 
-    // Filtrado de vinilos según búsqueda
+    val scrollState = rememberScrollState()
+
     val filteredVinyls = vinylList.filter {
         it.title.contains(searchQuery, ignoreCase = true) ||
                 it.artist.contains(searchQuery, ignoreCase = true) ||
                 it.genre.contains(searchQuery, ignoreCase = true)
     }
 
-    // Degradado de fondo
     val fondoDegradado = Brush.linearGradient(
         colors = listOf(Color(0xFF071A27), Color(0xFF1A3A4D)),
         start = Offset(0f, 0f),
         end = Offset(0f, Float.POSITIVE_INFINITY)
     )
 
-    // Scaffold con HEADER y FOOTER
     Scaffold(
         topBar = { AppHeader(title = "Vinyl Sound") },
         bottomBar = { AppFooter() }
@@ -70,55 +71,55 @@ fun StoreScreen(username: String?) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(fondoDegradado) // <-- Fondo degradado
+                .background(fondoDegradado)
                 .padding(paddingValues)
+                .verticalScroll(scrollState)   // 🔥 scroll global
                 .padding(16.dp)
         ) {
 
-            // 👋 Bienvenida
             if (!username.isNullOrEmpty()) {
                 Text(
                     text = "Bienvenido, $username",
                     style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    color = Color.White
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
             }
 
-            // 🔍 Buscador
+            /* -------- BUSCADOR -------- */
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 20.dp),
-                placeholder = { Text("Buscar vinilos...") },
-                singleLine = true
+                placeholder = {
+                    if (searchQuery.isEmpty()) {
+                        Text(
+                            text = "Buscar vinilos...",
+                            color = Color.LightGray
+                        )
+                    }
+                },
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White,
+                    focusedBorderColor = Color(0xFF7C4DFF),
+                    unfocusedBorderColor = Color.Gray,
+                    cursorColor = Color.White
+                )
             )
 
-            // ⭐ Carrusel de destacados
-            AutoScrollingFeaturedCarousel(
-                vinyls = filteredVinyls.take(8)
-            )
-
-            // 🔘 Filtros
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp)
-            ) {
-                item { FilledTonalButton(onClick = { }) { Text("Rock") } }
-                item { FilledTonalButton(onClick = { }) { Text("Pop") } }
-                item { FilledTonalButton(onClick = { }) { Text("Trap/Hip hop") } }
-                item { FilledTonalButton(onClick = { }) { Text("R&B") } }
-                item { FilledTonalButton(onClick = { }) { Text("Reguetón") } }
+            /* -------- DESTACADOS (SOLO SI NO BUSCA) -------- */
+            if (searchQuery.isEmpty()) {
+                AutoScrollingFeaturedCarousel(
+                    vinyls = filteredVinyls.take(8)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 📀 Catálogo con botón de cambio de vista
+            /* -------- CABECERA CATÁLOGO -------- */
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -141,28 +142,33 @@ fun StoreScreen(username: String?) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Mostrar lista o grid según isGrid
+            /* -------- CATÁLOGO (SIN DUPLICADOS) -------- */
             if (isGrid) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(filteredVinyls) { vinyl ->
-                        VinylItem(vinyl, isGrid = true)
+                filteredVinyls.chunked(2).forEach { rowItems ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        rowItems.forEach { vinyl ->
+                            Box(modifier = Modifier.weight(1f)) {
+                                VinylItem(vinyl, isGrid = true)
+                            }
+                        }
+                        if (rowItems.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(filteredVinyls) { vinyl ->
-                        VinylItem(vinyl, isGrid = false)
-                    }
+                filteredVinyls.forEach { vinyl ->
+                    VinylItem(vinyl = vinyl, isGrid = false)
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
+
+            Spacer(modifier = Modifier.height(80.dp)) // evita que el footer tape contenido
         }
     }
 }
@@ -172,75 +178,50 @@ fun StoreScreen(username: String?) {
 --------------------------------------------------- */
 @Composable
 fun AutoScrollingFeaturedCarousel(vinyls: List<Vinyl>) {
+
     val listState = rememberLazyListState()
-    var visible by remember { mutableStateOf(false) }
 
     LaunchedEffect(vinyls) {
-        visible = true
         if (vinyls.isNotEmpty()) {
             var index = 0
             while (true) {
-                delay(3000L)
+                delay(3000)
                 index = (index + 1) % vinyls.size
                 listState.animateScrollToItem(index)
             }
         }
     }
 
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn() + slideInVertically { it / 2 }
-    ) {
-        Column {
-            Text(
-                text = "Destacados",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 12.dp),
-                color = Color.White
-            )
+    Column {
+        Text(
+            text = "Destacados",
+            style = MaterialTheme.typography.titleLarge,
+            color = Color.White,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
 
-            LazyRow(
-                state = listState,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp)
-            ) {
-                itemsIndexed(vinyls) { index, vinyl ->
-                    AnimatedVinylCard(vinyl, index)
-                }
+        LazyRow(
+            state = listState,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp)
+        ) {
+            items(vinyls.size) { i ->
+                val vinyl = vinyls[i]
+                Image(
+                    painter = painterResource(id = vinyl.imageRes),
+                    contentDescription = vinyl.title,
+                    modifier = Modifier
+                        .size(150.dp)
+                        .clip(RoundedCornerShape(15.dp)),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     }
 }
 
 /* ---------------------------------------------------
-   TARJETA ANIMADA (solo imagen)
---------------------------------------------------- */
-@Composable
-fun AnimatedVinylCard(vinyl: Vinyl, index: Int) {
-    var visible by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        delay(index * 120L)
-        visible = true
-    }
-
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn() + slideInHorizontally { it / 2 }
-    ) {
-        Image(
-            painter = painterResource(id = vinyl.imageRes),
-            contentDescription = vinyl.title,
-            modifier = Modifier
-                .size(150.dp)
-                .clip(RoundedCornerShape(15.dp)),
-            contentScale = ContentScale.Crop
-        )
-    }
-}
-
-/* ---------------------------------------------------
-   ITEM DE VINILO (Lista o Grid)
+   ITEM VINILO
 --------------------------------------------------- */
 @Composable
 fun VinylItem(vinyl: Vinyl, isGrid: Boolean) {
@@ -265,9 +246,9 @@ fun VinylItem(vinyl: Vinyl, isGrid: Boolean) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(vinyl.title, style = MaterialTheme.typography.titleMedium, maxLines = 1)
-                Text(vinyl.artist, style = MaterialTheme.typography.bodySmall, maxLines = 1)
-                Text(vinyl.genre, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+                Text(vinyl.title, maxLines = 1)
+                Text(vinyl.artist, style = MaterialTheme.typography.bodySmall)
+                Text(vinyl.genre, style = MaterialTheme.typography.bodySmall)
                 Text("${vinyl.price} €", style = MaterialTheme.typography.bodySmall)
             }
         } else {
