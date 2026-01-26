@@ -1,0 +1,57 @@
+package com.example.vinilotfg.ui
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+
+@Composable
+fun AppFooter() {
+    BottomAppBar(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(70.dp) // Ajusta la altura aquí
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            IconButton(
+                onClick = { /* Home */ },
+                modifier = Modifier.offset(y = 10.dp) // desplaza 2dp hacia abajo
+            ) {
+                Icon(Icons.Default.Home, contentDescription = "Home")
+            }
+
+
+            IconButton(
+                onClick = { /* Buscar */ },
+                modifier = Modifier.offset(y = 10.dp)
+            ) {
+                Icon(Icons.Default.Search, contentDescription = "Buscar")
+            }
+
+            IconButton(
+                onClick = { /* Favoritos */ },
+                modifier = Modifier.offset(y = 10.dp)
+            ) {
+                Icon(Icons.Default.FavoriteBorder, contentDescription = "Favoritos")
+            }
+
+            IconButton(
+                onClick = { /* Perfil */ },
+                modifier = Modifier.offset(y = 10.dp)
+            ) {
+                Icon(Icons.Default.Person, contentDescription = "Perfil")
+            }
+        }
+    }
+}
+

@@ -1,11 +1,8 @@
 package com.example.vinilotfg.ui
 
+import android.R
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.example.vinilotfg.ui.theme.*
 import androidx.compose.ui.text.font.FontWeight
 
@@ -18,7 +15,8 @@ fun AppHeader(title: String) {
             Text(
                 text = title,
                 color = TextoBlanco,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                style= LogoTextStyle
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
