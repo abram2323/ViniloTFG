@@ -1,6 +1,7 @@
 package com.example.vinilotfg
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -12,81 +13,107 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.vinilotfg.ui.theme.*
 
-/* ---------------- PREVIEW ---------------- */
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun RegistroPreview() {
-    ViniloTFGTheme {
-        val navController = rememberNavController()
-        Registro(navController)
-    }
-}
-
-/* ---------------- PANTALLA REGISTRO ---------------- */
-@OptIn(ExperimentalMaterial3Api::class)
+/* ---------------------------------------------------
+   PANTALLA DE REGISTRO
+--------------------------------------------------- */
 @Composable
 fun Registro(navController: NavController) {
 
+    // Estados para almacenar el texto introducido en cada campo del formulario
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
-    var contraseña by remember { mutableStateOf("") }
-    var repiteContraseña by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var repeatPassword by remember { mutableStateOf("") }
 
-    // Definimos el mismo degradado que en el Inicio
-    val fondoDegradado = Brush.linearGradient(
-        0.0f to Color(0xFF071A27),
-        1.0f to Color(0xFF1A3A4D),
-        start = Offset(0f, 0f),
+    // Definición del degradado lineal para el fondo de la pantalla (púrpura a negro)
+    val fondo = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFF4B1173),
+            Color(0xFF1A002D)
+        ),
+        start = Offset.Zero,
         end = Offset(0f, Float.POSITIVE_INFINITY)
     )
 
-    // PASO 1: Box principal con el degradado
+    // Definición del degradado horizontal para el botón principal
+    val botonGradiente = Brush.horizontalGradient(
+        colors = listOf(
+            Color(0xFFB13CFF),
+            Color(0xFFFF2D6F)
+        )
+    )
+
+    // Contenedor principal que ocupa toda la pantalla con el fondo degradado
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(brush = fondoDegradado)
+            .background(fondo),
+        contentAlignment = Alignment.TopCenter
     ) {
-        // PASO 2: Scaffold transparente
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = { AppHeader(title = "Registro") }
-        ) { innerPadding ->
 
+        // Columna que organiza el logo y la tarjeta de registro verticalmente
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            // SECCIÓN LOGO
+            Text(
+                text = "🎵 Vinyl Sounds",
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold,
+                style= LogoTextStyle
+            )
+            Text(
+                text = "Crea tu cuenta",
+                fontSize = 14.sp,
+                color = Color(0xFFC9B4E3)
+            )
+
+            Spacer(modifier = Modifier.height(36.dp))
+
+            // CARD: Contenedor oscuro con bordes redondeados para el formulario
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(horizontal = 24.dp)
+                    .fillMaxWidth()
+                    .background(
+                        color = Color(0xFF221137),
+                        shape = RoundedCornerShape(30.dp)
+                    )
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
                 Text(
-                    text = "Crear cuenta",
-                    color = Purple60,
-                    fontSize = 28.sp,
+                    text = "Registro",
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Start)
+                    color = Color.White
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Únete a VinylSounds",
-                    color = TextoBlanco,
-                    modifier = Modifier.align(Alignment.Start)
+                    text = "Únete a Vinyl Sounds",
+                    fontSize = 13.sp,
+                    color = Color(0xFFBFA7D8)
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
+                // FILA PARA NOMBRE Y APELLIDO (Dividen el ancho al 50% usando weight)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -94,103 +121,138 @@ fun Registro(navController: NavController) {
                     OutlinedTextField(
                         value = nombre,
                         onValueChange = { nombre = it },
-                        placeholder = { Text("Nombre", color = Color.LightGray) },
+                        placeholder = { Text("Nombre") },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = TextoBlanco,
-                            unfocusedTextColor = TextoBlanco,
-                            focusedBorderColor = Color(0xFFA350F9),
-                            unfocusedBorderColor = Color.Gray
-                        )
+                        colors = registroTextFieldColors()
                     )
 
                     OutlinedTextField(
                         value = apellido,
                         onValueChange = { apellido = it },
-                        placeholder = { Text("Apellido", color = Color.LightGray) },
+                        placeholder = { Text("Apellido") },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = TextoBlanco,
-                            unfocusedTextColor = TextoBlanco,
-                            focusedBorderColor = Color(0xFFA350F9),
-                            unfocusedBorderColor = Color.Gray
-                        )
+                        colors = registroTextFieldColors()
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
+                // CAMPO EMAIL
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = { Text("Correo electrónico", color = Color.LightGray) },
+                    placeholder = { Text("Correo electrónico") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextoBlanco,
-                        unfocusedTextColor = TextoBlanco,
-                        focusedBorderColor = Color(0xFFA350F9),
-                        unfocusedBorderColor = Color.Gray
-                    )
+                    colors = registroTextFieldColors()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
+                // CAMPO CONTRASEÑA (Usa PasswordVisualTransformation para ocultar caracteres)
                 OutlinedTextField(
-                    value = contraseña,
-                    onValueChange = { contraseña = it },
-                    placeholder = { Text("Contraseña", color = Color.LightGray) },
+                    value = password,
+                    onValueChange = { password = it },
+                    placeholder = { Text("Contraseña") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextoBlanco,
-                        unfocusedTextColor = TextoBlanco,
-                        focusedBorderColor = Color(0xFFA350F9),
-                        unfocusedBorderColor = Color.Gray
-                    )
+                    colors = registroTextFieldColors()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
+                // CAMPO REPETIR CONTRASEÑA
                 OutlinedTextField(
-                    value = repiteContraseña,
-                    onValueChange = { repiteContraseña = it },
-                    placeholder = { Text("Repite contraseña", color = Color.LightGray) },
+                    value = repeatPassword,
+                    onValueChange = { repeatPassword = it },
+                    placeholder = { Text("Repite la contraseña") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = TextoBlanco,
-                        unfocusedTextColor = TextoBlanco,
-                        focusedBorderColor = Color(0xFFA350F9),
-                        unfocusedBorderColor = Color.Gray
-                    )
+                    colors = registroTextFieldColors()
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(22.dp))
 
-                Button(
-                    onClick = {
-                        if (email.isNotBlank()) {
-                            navController.navigate("store/$email") {
-                                popUpTo("inicio") { inclusive = true }
-                            }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(6.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Rosa)
+                // BOTÓN CREAR CUENTA CON FONDO DEGRADADO
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .background(botonGradiente, RoundedCornerShape(20.dp))
                 ) {
-                    Text("Crear cuenta", fontWeight = FontWeight.Bold)
+                    Button(
+                        onClick = {
+                            if (email.isNotBlank()) {
+                                // Navega a la tienda y elimina la pantalla de login del historial
+                                navController.navigate("store/$email") {
+                                    popUpTo("inicio") { inclusive = true }
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent // Permite ver el degradado del Box
+                        )
+                    ) {
+                        Text(
+                            text = "Crear cuenta",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
 
-                TextButton(onClick = { navController.popBackStack() }) {
-                    Text("Volver", color = TextoBlanco)
-                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // TEXTO CLICKABLE PARA REGRESAR AL LOGIN
+                Text(
+                    text = "¿Ya tienes cuenta? Inicia sesión",
+                    fontSize = 13.sp,
+                    color = Color(0xFFBFA7D8),
+                    modifier = Modifier.clickable {
+                        navController.popBackStack() // Vuelve a la pantalla anterior
+                    }
+                )
             }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // PIE DE PÁGINA: Texto legal
+            Text(
+                text = "Al registrarte, aceptas nuestros Términos de servicio y Política de privacidad",
+                fontSize = 11.sp,
+                color = Color.Gray,
+                lineHeight = 14.sp
+            )
         }
+    }
+}
+
+/* ---------------------------------------------------
+   CONFIGURACIÓN DE COLORES REUTILIZABLE PARA INPUTS
+--------------------------------------------------- */
+@Composable
+fun registroTextFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = Color.White,
+    unfocusedTextColor = Color.White,
+    focusedBorderColor = Color(0xFF7B5CFF),
+    unfocusedBorderColor = Color(0xFF3E2A5E),
+    focusedPlaceholderColor = Color(0xFFBFA7D8),
+    unfocusedPlaceholderColor = Color(0xFFBFA7D8)
+)
+
+/* ---------------------------------------------------
+   VISTA PREVIA DEL COMPONENTE
+--------------------------------------------------- */
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun RegistroPreview() {
+    ViniloTFGTheme {
+        Registro(navController = rememberNavController())
     }
 }

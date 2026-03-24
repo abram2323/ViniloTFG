@@ -27,33 +27,42 @@ import androidx.navigation.compose.rememberNavController
 import com.example.vinilotfg.ui.theme.*
 
 /* ---------------------------------------------------
-   ACTIVITY
+   ACTIVITY: Punto de entrada de la aplicación
 --------------------------------------------------- */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Permite que el diseño se extienda bajo las barras del sistema (estado/navegación)
         enableEdgeToEdge()
         setContent {
+            // Aplicación del tema global personalizado
             ViniloTFGTheme {
+                // Inicialización del controlador de navegación
                 val navController = rememberNavController()
 
+                // Estructura base que gestiona el espacio de la pantalla
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    // Configuración del motor de rutas (NavHost)
                     NavHost(
                         navController = navController,
-                        startDestination = "inicio",
+                        startDestination = "inicio", // Pantalla de carga inicial
                         modifier = Modifier.padding(innerPadding)
                     ) {
+                        // Ruta para el Login
                         composable("inicio") {
                             InicioScreen(navController)
                         }
+                        // Ruta para el Registro
                         composable("register") {
                             Registro(navController)
                         }
+                        // Ruta para la tienda con argumento dinámico (nombre de usuario)
                         composable("store/{username}") { backStackEntry ->
                             val username =
                                 backStackEntry.arguments?.getString("username")
                             StoreScreen(username)
                         }
+                        // Ruta para la tienda sin usuario identificado
                         composable("store_guest") {
                             StoreScreen(null)
                         }
@@ -65,7 +74,7 @@ class MainActivity : ComponentActivity() {
 }
 
 /* ---------------------------------------------------
-   HEADER (USADO POR REGISTER)
+   HEADER: Barra superior reutilizable
 --------------------------------------------------- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,20 +88,22 @@ fun AppHeader(title: String) {
             )
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = ColorHeader
+            containerColor = ColorHeader // Color definido en el tema
         )
     )
 }
 
 /* ---------------------------------------------------
-   LOGIN / INICIO
+   LOGIN / INICIO: Interfaz de acceso
 --------------------------------------------------- */
 @Composable
 fun InicioScreen(navController: NavController) {
 
+    // Estados reactivos para capturar la entrada del usuario
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // Definición del degradado de fondo (Vertical)
     val fondo = Brush.linearGradient(
         colors = listOf(
             Color(0xFF4B1173),
@@ -102,6 +113,7 @@ fun InicioScreen(navController: NavController) {
         end = Offset(0f, Float.POSITIVE_INFINITY)
     )
 
+    // Definición del degradado para los botones (Horizontal)
     val botonGradiente = Brush.horizontalGradient(
         colors = listOf(
             Color(0xFFB13CFF),
@@ -109,6 +121,7 @@ fun InicioScreen(navController: NavController) {
         )
     )
 
+    // Contenedor principal con fondo decorativo
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -125,12 +138,12 @@ fun InicioScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // LOGO
+            // IDENTIDAD VISUAL: Logo y Slogan
             Text(
                 text = "🎵 Vinyl Sounds",
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFE1A6FF)
+                style= LogoTextStyle
             )
             Text(
                 text = "Tu música, tu estilo",
@@ -140,7 +153,7 @@ fun InicioScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(36.dp))
 
-            // CARD
+            // TARJETA DE FORMULARIO (Card)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -169,7 +182,7 @@ fun InicioScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // GOOGLE (solo UI)
+                // ACCESO CON GOOGLE (Componente visual sin lógica activa)
                 OutlinedButton(
                     onClick = { },
                     modifier = Modifier
@@ -189,7 +202,7 @@ fun InicioScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // SEPARADOR
+                // SEPARADOR VISUAL
                 Box(
                     modifier = Modifier
                         .background(
@@ -207,7 +220,7 @@ fun InicioScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // EMAIL
+                // ENTRADA DE EMAIL
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -226,7 +239,7 @@ fun InicioScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // PASSWORD
+                // ENTRADA DE CONTRASEÑA (Con transformación visual oculta)
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -246,7 +259,7 @@ fun InicioScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // BOTÓN LOGIN
+                // BOTÓN DE ACCIÓN: LOGIN
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -255,6 +268,7 @@ fun InicioScreen(navController: NavController) {
                 ) {
                     Button(
                         onClick = {
+                            // Navegación hacia la tienda pasando el email si no está vacío
                             if (email.isNotBlank()) {
                                 navController.navigate("store/$email")
                             }
@@ -275,6 +289,7 @@ fun InicioScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(14.dp))
 
+                // ENLACE A REGISTRO
                 Text(
                     text = "¿No tienes cuenta? Regístrate",
                     fontSize = 13.sp,
@@ -286,6 +301,7 @@ fun InicioScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // OPCIÓN PARA ENTRAR SIN CUENTA
                 Text(
                     text = "Entrar como invitado",
                     fontSize = 13.sp,
@@ -298,6 +314,7 @@ fun InicioScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(18.dp))
 
+            // TEXTO LEGAL / PIE DE PÁGINA
             Text(
                 text = "Al continuar, aceptas nuestros Términos de servicio y Política de privacidad",
                 fontSize = 11.sp,
@@ -309,7 +326,7 @@ fun InicioScreen(navController: NavController) {
 }
 
 /* ---------------------------------------------------
-   PREVIEW
+   PREVIEW: Previsualización en el editor de Android Studio
 --------------------------------------------------- */
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
