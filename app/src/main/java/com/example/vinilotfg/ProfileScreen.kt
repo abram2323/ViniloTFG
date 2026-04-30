@@ -75,23 +75,13 @@ fun ClientesScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Cards de estadísticas
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                StatCard(Modifier.weight(1f), "1,234", "Canciones")
-                StatCard(Modifier.weight(1f), "45", "Playlists")
-                StatCard(Modifier.weight(1f), "892", "Favoritas")
-            }
-
             Spacer(modifier = Modifier.height(25.dp))
 
             // Lista de opciones
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OptionRow(Icons.Default.PersonOutline, "Editar perfil")
                 OptionRow(Icons.Default.FavoriteBorder, "Mis favoritas")
-                OptionRow(Icons.Default.QueueMusic, "Mis playlists")
+                OptionRow(Icons.Default.QueueMusic, "Mi carrito")
                 OptionRow(Icons.Default.WorkspacePremium, "Obtener Premium", Color(0xFFFFD700))
                 OptionRow(Icons.Default.Settings, "Configuración")
             }
