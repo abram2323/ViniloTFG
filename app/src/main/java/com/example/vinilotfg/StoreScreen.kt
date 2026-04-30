@@ -21,13 +21,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.vinilotfg.ui.AppHeader
 import com.example.vinilotfg.ui.AppFooter
 import kotlinx.coroutines.delay
+import androidx.compose.ui.text.font.FontWeight
 
 @Composable
-fun StoreScreen(username: String?, viewModel: VinylViewModel = viewModel()) {
+fun StoreScreen(
+    username: String?,
+    navController: NavController, // <-- Parámetro añadido para la navegación
+    viewModel: VinylViewModel = viewModel()
+) {
     val vinylList by viewModel.vinyls.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var isGrid by remember { mutableStateOf(false) }
@@ -45,11 +51,17 @@ fun StoreScreen(username: String?, viewModel: VinylViewModel = viewModel()) {
 
     Scaffold(
         topBar = { AppHeader(title = "Vinyl Sound") },
-        bottomBar = { AppFooter() }
+        bottomBar = { AppFooter(navController) } // <-- Pasamos el controlador al Footer
     ) { paddingValues ->
-        // Si no hay datos, mostramos un cargador
+
         if (vinylList.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().background(Color(0xFF071A27)), contentAlignment = Alignment.Center) {
+            // Pantalla de carga mientras llegan los datos de la API
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF071A27)),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator(color = Color.White)
             }
         } else {
@@ -58,18 +70,31 @@ fun StoreScreen(username: String?, viewModel: VinylViewModel = viewModel()) {
                     .fillMaxSize()
                     .background(fondoDegradado)
                     .padding(paddingValues)
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp)
             ) {
+                Spacer(modifier = Modifier.height(16.dp))
+
                 if (!username.isNullOrEmpty()) {
-                    Text("Bienvenido, $username", style = MaterialTheme.typography.headlineSmall, color = Color.White, modifier = Modifier.padding(bottom = 16.dp))
+                    Text(
+                        text = "Bienvenido, $username",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color.White,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
                 }
 
+                // Barra de búsqueda
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
                     modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
                     placeholder = { Text("Buscar vinilos...", color = Color.LightGray) },
-                    colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        focusedBorderColor = Color.Cyan
+                    )
                 )
 
                 if (searchQuery.isEmpty()) {
@@ -77,27 +102,47 @@ fun StoreScreen(username: String?, viewModel: VinylViewModel = viewModel()) {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                // Cabecera del Catálogo con selector de vista
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text("Catálogo", style = MaterialTheme.typography.headlineMedium, color = Color.White)
                     IconButton(onClick = { isGrid = !isGrid }) {
-                        Icon(imageVector = if (isGrid) Icons.Filled.List else Icons.Filled.GridView, contentDescription = "Cambiar vista", tint = Color.White)
+                        Icon(
+                            imageVector = if (isGrid) Icons.Filled.List else Icons.Filled.GridView,
+                            contentDescription = "Cambiar vista",
+                            tint = Color.White
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Aquí usamos LazyColumn para mostrar la lista de forma eficiente
-                LazyColumn(contentPadding = PaddingValues(bottom = 80.dp)) {
+                // Lista de productos
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     if (isGrid) {
                         items(filteredVinyls.chunked(2)) { rowItems ->
-                            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                rowItems.forEach { vinyl -> Box(modifier = Modifier.weight(1f)) { VinylItem(vinyl, true) } }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                rowItems.forEach { vinyl ->
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        VinylItem(vinyl, true)
+                                    }
+                                }
+                                // Si la fila tiene solo 1 item, rellenamos el hueco
+                                if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     } else {
                         items(filteredVinyls) { vinyl ->
                             VinylItem(vinyl = vinyl, isGrid = false)
-                            Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
                 }
@@ -109,20 +154,36 @@ fun StoreScreen(username: String?, viewModel: VinylViewModel = viewModel()) {
 @Composable
 fun FeaturedCarousel(vinyls: List<Vinyl>) {
     val listState = rememberLazyListState()
+
+    // Auto-scroll del carrusel
     LaunchedEffect(Unit) {
         while (true) {
-            delay(3000)
-            listState.animateScrollToItem((listState.firstVisibleItemIndex + 1) % vinyls.size)
+            delay(4000)
+            if (vinyls.isNotEmpty()) {
+                val nextIndex = (listState.firstVisibleItemIndex + 1) % vinyls.size
+                listState.animateScrollToItem(nextIndex)
+            }
         }
     }
+
     Column {
-        Text("Destacados", style = MaterialTheme.typography.titleLarge, color = Color.White, modifier = Modifier.padding(bottom = 12.dp))
-        LazyRow(state = listState, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "Destacados",
+            style = MaterialTheme.typography.titleLarge,
+            color = Color.White,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        LazyRow(
+            state = listState,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             items(vinyls) { vinyl ->
                 AsyncImage(
                     model = vinyl.imagen_url,
                     contentDescription = vinyl.nombre,
-                    modifier = Modifier.size(150.dp).clip(RoundedCornerShape(15.dp)),
+                    modifier = Modifier
+                        .size(150.dp)
+                        .clip(RoundedCornerShape(15.dp)),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -132,21 +193,48 @@ fun FeaturedCarousel(vinyls: List<Vinyl>) {
 
 @Composable
 fun VinylItem(vinyl: Vinyl, isGrid: Boolean) {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF221137)),
+        elevation = CardDefaults.cardElevation(4.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
         if (isGrid) {
-            Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                AsyncImage(model = vinyl.imagen_url, contentDescription = vinyl.nombre, modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
-                Text(vinyl.nombre, maxLines = 1)
-                Text("${vinyl.precio} €", style = MaterialTheme.typography.bodySmall)
+            Column(
+                modifier = Modifier.padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AsyncImage(
+                    model = vinyl.imagen_url,
+                    contentDescription = vinyl.nombre,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(vinyl.nombre, color = Color.White, maxLines = 1)
+                Text("${vinyl.precio} €", color = Color.Cyan, style = MaterialTheme.typography.bodySmall)
             }
         } else {
-            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                AsyncImage(model = vinyl.imagen_url, contentDescription = vinyl.nombre, modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = vinyl.imagen_url,
+                    contentDescription = vinyl.nombre,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Text(vinyl.nombre, style = MaterialTheme.typography.titleMedium)
-                    Text("Artista: ${vinyl.artista}")
-                    Text("Precio: ${vinyl.precio} €")
+                    Text(vinyl.nombre, color = Color.White, style = MaterialTheme.typography.titleMedium)
+                    Text("Artista: ${vinyl.artista}", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
+                    Text("${vinyl.precio} €", color = Color.Cyan, fontWeight = FontWeight.Bold)
                 }
             }
         }

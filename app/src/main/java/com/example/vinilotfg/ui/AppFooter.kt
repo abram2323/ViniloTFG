@@ -8,45 +8,32 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
+import androidx.navigation.NavController // Importación limpia
 
 @Composable
-fun AppFooter() {
+fun AppFooter(navController: NavController) { // Usamos NavController directamente
     BottomAppBar(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(70.dp) // Ajusta la altura aquí
+        modifier = Modifier.fillMaxWidth().height(70.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            IconButton(
-                onClick = { /* Home */ },
-                modifier = Modifier.offset(y = 10.dp) // desplaza 2dp hacia abajo
-            ) {
+            IconButton(onClick = { navController.navigate("store_guest") }, modifier = Modifier.offset(y = 10.dp)) {
                 Icon(Icons.Default.Home, contentDescription = "Home")
             }
 
-
-            IconButton(
-                onClick = { /* Buscar */ },
-                modifier = Modifier.offset(y = 10.dp)
-            ) {
+            IconButton(onClick = { /* Buscar */ }, modifier = Modifier.offset(y = 10.dp)) {
                 Icon(Icons.Default.Search, contentDescription = "Buscar")
             }
 
-            IconButton(
-                onClick = { /* Favoritos */ },
-                modifier = Modifier.offset(y = 10.dp)
-            ) {
+            IconButton(onClick = { /* Favoritos */ }, modifier = Modifier.offset(y = 10.dp)) {
                 Icon(Icons.Default.FavoriteBorder, contentDescription = "Favoritos")
             }
 
             IconButton(
-                onClick = { /* Perfil */ },
+                onClick = { navController.navigate("perfil") },
                 modifier = Modifier.offset(y = 10.dp)
             ) {
                 Icon(Icons.Default.Person, contentDescription = "Perfil")
@@ -54,4 +41,3 @@ fun AppFooter() {
         }
     }
 }
-

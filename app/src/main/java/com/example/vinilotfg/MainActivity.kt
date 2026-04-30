@@ -32,19 +32,29 @@ class MainActivity : ComponentActivity() {
         setContent {
             ViniloTFGTheme {
                 val navController = rememberNavController()
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    NavHost(
-                        navController = navController,
-                        startDestination = "inicio",
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-                        composable("inicio") { InicioScreen(navController) }
-                        composable("register") { Registro(navController) }
-                        composable("store/{username}") { backStackEntry ->
-                            val username = backStackEntry.arguments?.getString("username")
-                            StoreScreen(username)
-                        }
-                        composable("store_guest") { StoreScreen(null) }
+
+                // IMPORTANTE: Quitamos el Scaffold de aquí para que no interfiera
+                // con los fondos de pantalla completa del login y el perfil.
+                NavHost(
+                    navController = navController,
+                    startDestination = "inicio"
+                ) {
+                    composable("inicio") { InicioScreen(navController) }
+                    composable("register") { Registro(navController) }
+
+                    composable("store/{username}") { backStackEntry ->
+                        val username = backStackEntry.arguments?.getString("username")
+                        // Ahora enviamos AMBOS parámetros para que no dé error
+                        StoreScreen(username, navController)
+                    }
+
+                    composable("store_guest") {
+                        StoreScreen(null, navController)
+                    }
+
+                    // Añadimos la ruta para tu nueva pantalla de perfil
+                    composable("perfil") {
+                        ClientesScreen(navController)
                     }
                 }
             }
@@ -57,6 +67,7 @@ fun InicioScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    // Tu degradado original
     val fondo = Brush.linearGradient(
         colors = listOf(Color(0xFF4B1173), Color(0xFF1A002D)),
         start = Offset.Zero,
@@ -77,6 +88,7 @@ fun InicioScreen(navController: NavController) {
         ) {
             Spacer(modifier = Modifier.height(48.dp))
 
+            // Tu estilo de logo original
             Text("🎵 Vinyl Sounds", fontSize = 30.sp, fontWeight = FontWeight.Bold, style = LogoTextStyle)
             Text("Tu música, tu estilo", fontSize = 14.sp, color = Color(0xFFC9B4E3))
 
@@ -92,10 +104,11 @@ fun InicioScreen(navController: NavController) {
                 Text("Bienvenido de nuevo", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 Spacer(modifier = Modifier.height(6.dp))
                 Text("Ingresa tus credenciales para continuar", fontSize = 13.sp, color = Color(0xFFBFA7D8))
+
                 Spacer(modifier = Modifier.height(18.dp))
 
                 OutlinedButton(
-                    onClick = { },
+                    onClick = { /* Google Login */ },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
@@ -148,26 +161,47 @@ fun InicioScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Box(modifier = Modifier.fillMaxWidth().height(56.dp).background(botonGradiente, RoundedCornerShape(20.dp))) {
-                    Button(
-                        onClick = { if (email.isNotBlank()) navController.navigate("store/$email") },
-                        modifier = Modifier.fillMaxSize(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-                    ) {
-                        Text("Iniciar sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    }
+                // Botón con tu gradiente original
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .background(botonGradiente, RoundedCornerShape(20.dp))
+                        .clickable {
+                            if (email.isNotBlank()) navController.navigate("store/$email")
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Iniciar sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                Text("¿No tienes cuenta? Regístrate", fontSize = 13.sp, color = Color(0xFFBFA7D8), modifier = Modifier.clickable { navController.navigate("register") })
+                Text(
+                    text = "¿No tienes cuenta? Regístrate",
+                    fontSize = 13.sp,
+                    color = Color(0xFFBFA7D8),
+                    modifier = Modifier.clickable { navController.navigate("register") }
+                )
+
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Entrar como invitado", fontSize = 13.sp, color = Color.White, modifier = Modifier.clickable { navController.navigate("store_guest") })
+
+                Text(
+                    text = "Entrar como invitado",
+                    fontSize = 13.sp,
+                    color = Color.White,
+                    modifier = Modifier.clickable { navController.navigate("store_guest") }
+                )
             }
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            Text("Al continuar, aceptas nuestros Términos de servicio y Política de privacidad", fontSize = 11.sp, color = Color.Gray, lineHeight = 14.sp)
+            Text(
+                text = "Al continuar, aceptas nuestros Términos de servicio y Política de privacidad",
+                fontSize = 11.sp,
+                color = Color.Gray,
+                lineHeight = 14.sp
+            )
         }
     }
 }
