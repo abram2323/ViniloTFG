@@ -7,6 +7,7 @@ data class Vinyl(
     val genero: String,
     val precio: Double,
     val imagen_url: String,
+    val descripcion: String?,
     val stock: Int,
     val estado: String
 )

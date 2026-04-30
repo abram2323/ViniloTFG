@@ -1,6 +1,7 @@
 package com.example.vinilotfg
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -19,37 +20,26 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.vinilotfg.ui.AppHeader
 import com.example.vinilotfg.ui.AppFooter
 import kotlinx.coroutines.delay
-import androidx.compose.ui.text.font.FontWeight
 
-/**
- * Pantalla principal de la tienda.
- * Gestiona el catálogo de vinilos, la búsqueda y el filtrado.
- *
- * @param username El nombre del usuario (opcional) pasado desde el login.
- * @param navController Controlador para gestionar la navegación hacia otras pantallas.
- * @param viewModel Modelo de vista que provee los datos de los vinilos de forma reactiva.
- */
 @Composable
 fun StoreScreen(
     username: String?,
     navController: NavController,
     viewModel: VinylViewModel = viewModel()
 ) {
-    // Observa la lista de vinilos del ViewModel como un estado de Compose
     val vinylList by viewModel.vinyls.collectAsState()
-
-    // Estados locales para la barra de búsqueda y el tipo de visualización
     var searchQuery by remember { mutableStateOf("") }
     var isGrid by remember { mutableStateOf(false) }
 
-    // Lógica de filtrado en tiempo real basada en el nombre o el artista
     val filteredVinyls = vinylList.filter {
         it.nombre.contains(searchQuery, ignoreCase = true) ||
                 it.artista.contains(searchQuery, ignoreCase = true)
@@ -62,11 +52,10 @@ fun StoreScreen(
     )
 
     Scaffold(
-        topBar = { AppHeader(title = "Vinyl Sound") }, // Cabecera personalizada
-        bottomBar = { AppFooter(navController) }       // Pie de página con botones de navegación
+        topBar = { AppHeader(title = "Vinyl Sound") },
+        bottomBar = { AppFooter(navController) }
     ) { paddingValues ->
 
-        // Estado de carga: si la lista está vacía, muestra un indicador de progreso
         if (vinylList.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -86,7 +75,6 @@ fun StoreScreen(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Mensaje de bienvenida si el usuario está identificado
                 if (!username.isNullOrEmpty()) {
                     Text(
                         text = "Bienvenido, $username",
@@ -96,7 +84,6 @@ fun StoreScreen(
                     )
                 }
 
-                // Componente de búsqueda
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -110,13 +97,11 @@ fun StoreScreen(
                     )
                 )
 
-                // Solo muestra el carrusel de destacados si no se está realizando una búsqueda
                 if (searchQuery.isEmpty()) {
                     FeaturedCarousel(vinyls = vinylList.take(5))
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Cabecera de la sección de productos con selector de vista
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -134,13 +119,11 @@ fun StoreScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Lista optimizada para scroll eficiente (LazyColumn)
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     if (isGrid) {
-                        // Lógica para mostrar los items en cuadrícula (grid) de 2 columnas
                         items(filteredVinyls.chunked(2)) { rowItems ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -148,16 +131,15 @@ fun StoreScreen(
                             ) {
                                 rowItems.forEach { vinyl ->
                                     Box(modifier = Modifier.weight(1f)) {
-                                        VinylItem(vinyl, true)
+                                        VinylItem(vinyl, true, navController)
                                     }
                                 }
                                 if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     } else {
-                        // Vista de lista estándar (una columna)
                         items(filteredVinyls) { vinyl ->
-                            VinylItem(vinyl = vinyl, isGrid = false)
+                            VinylItem(vinyl = vinyl, isGrid = false, navController = navController)
                         }
                     }
                 }
@@ -166,14 +148,10 @@ fun StoreScreen(
     }
 }
 
-/**
- * Carrusel horizontal que se desplaza automáticamente cada 4 segundos.
- */
 @Composable
 fun FeaturedCarousel(vinyls: List<Vinyl>) {
     val listState = rememberLazyListState()
 
-    // Efecto secundario que lanza una corrutina para el desplazamiento automático
     LaunchedEffect(Unit) {
         while (true) {
             delay(4000)
@@ -209,20 +187,20 @@ fun FeaturedCarousel(vinyls: List<Vinyl>) {
     }
 }
 
-/**
- * Representación visual individual de cada vinilo.
- * Soporta dos modos: vertical (Grid) u horizontal (List).
- */
 @Composable
-fun VinylItem(vinyl: Vinyl, isGrid: Boolean) {
+fun VinylItem(vinyl: Vinyl, isGrid: Boolean, navController: NavController) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                // Navegamos a la pantalla de detalle usando el ID de Supabase
+                navController.navigate("detalle/${vinyl.id}")
+            },
         colors = CardDefaults.cardColors(containerColor = Color(0xFF221137)),
         elevation = CardDefaults.cardElevation(4.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         if (isGrid) {
-            // Diseño para la cuadrícula
             Column(
                 modifier = Modifier.padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -237,11 +215,19 @@ fun VinylItem(vinyl: Vinyl, isGrid: Boolean) {
                     contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(vinyl.nombre, color = Color.White, maxLines = 1)
-                Text("${vinyl.precio} €", color = Color.Cyan, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = vinyl.nombre,
+                    color = Color.White,
+                    maxLines = 1,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${vinyl.precio} €",
+                    color = Color.Cyan,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         } else {
-            // Diseño para la lista
             Row(
                 modifier = Modifier.padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -256,9 +242,22 @@ fun VinylItem(vinyl: Vinyl, isGrid: Boolean) {
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Text(vinyl.nombre, color = Color.White, style = MaterialTheme.typography.titleMedium)
-                    Text("Artista: ${vinyl.artista}", color = Color.LightGray, style = MaterialTheme.typography.bodySmall)
-                    Text("${vinyl.precio} €", color = Color.Cyan, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = vinyl.nombre,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Artista: ${vinyl.artista}",
+                        color = Color.LightGray,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = "${vinyl.precio} €",
+                        color = Color.Cyan,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
