@@ -22,16 +22,23 @@ import androidx.navigation.NavController
 import com.example.vinilotfg.ui.AppFooter
 import com.example.vinilotfg.ui.AppHeader
 
+/**
+ * Pantalla de perfil del cliente.
+ * Muestra la información del usuario, su estado premium y opciones de configuración.
+ *
+ * @param navController Controlador de navegación para redirigir a otras secciones desde el footer.
+ */
 @Composable
 fun ClientesScreen(navController: NavController) {
+    // Paleta de colores coherente con la temática de la app
     val fondoOscuro = Color(0xFF120338)
     val degradadoAvatar = Brush.linearGradient(
         colors = listOf(Color(0xFFE91E63), Color(0xFF9C27B0))
     )
 
     Scaffold(
-        topBar = { AppHeader(title = "Perfil") },
-        bottomBar = { AppFooter(navController) },
+        topBar = { AppHeader(title = "Perfil") }, // Cabecera con título fijo
+        bottomBar = { AppFooter(navController) }, // Barra de navegación inferior
         containerColor = fondoOscuro
     ) { paddingValues ->
         Column(
@@ -43,11 +50,11 @@ fun ClientesScreen(navController: NavController) {
         ) {
             Spacer(modifier = Modifier.height(30.dp))
 
-            // Avatar
+            // SECCIÓN DE AVATAR: Círculo con degradado e icono de persona
             Box(
                 modifier = Modifier
                     .size(100.dp)
-                    .clip(CircleShape)
+                    .clip(CircleShape) // Recorta el fondo en forma circular
                     .background(degradadoAvatar),
                 contentAlignment = Alignment.Center
             ) {
@@ -56,16 +63,17 @@ fun ClientesScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Información básica del usuario
             Text("Usuario", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Text("usuario@gmail.com", color = Color.LightGray, fontSize = 14.sp)
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Etiqueta Premium
+            // ETIQUETA PREMIUM: Uso de Surface para crear un "Badge" o etiqueta estilizada
             Surface(color = Color(0xFF311B92), shape = RoundedCornerShape(20.dp)) {
                 Row(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically // Verifica que el import sea androidx.compose.ui.Alignment
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
@@ -74,14 +82,14 @@ fun ClientesScreen(navController: NavController) {
             }
 
             Spacer(modifier = Modifier.height(30.dp))
-
             Spacer(modifier = Modifier.height(25.dp))
 
-            // Lista de opciones
+            // LISTA DE OPCIONES: Menú vertical de tarjetas interactivas
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OptionRow(Icons.Default.PersonOutline, "Editar perfil")
                 OptionRow(Icons.Default.FavoriteBorder, "Mis favoritas")
                 OptionRow(Icons.Default.QueueMusic, "Mi carrito")
+                // Opción destacada en color dorado
                 OptionRow(Icons.Default.WorkspacePremium, "Obtener Premium", Color(0xFFFFD700))
                 OptionRow(Icons.Default.Settings, "Configuración")
             }
@@ -89,6 +97,12 @@ fun ClientesScreen(navController: NavController) {
     }
 }
 
+/**
+ * Componente genérico para mostrar tarjetas de estadísticas (aunque no se use en el layout actual).
+ *
+ * @param value El valor numérico o texto principal.
+ * @param label La etiqueta descriptiva debajo del valor.
+ */
 @Composable
 fun StatCard(modifier: Modifier, value: String, label: String) {
     Card(
@@ -107,6 +121,13 @@ fun StatCard(modifier: Modifier, value: String, label: String) {
     }
 }
 
+/**
+ * Componente para representar una fila de opción en el menú de perfil.
+ *
+ * @param icon Icono a mostrar a la izquierda.
+ * @param title Texto descriptivo de la opción.
+ * @param iconColor Color del icono (por defecto blanco).
+ */
 @Composable
 fun OptionRow(icon: ImageVector, title: String, iconColor: Color = Color.White) {
     Card(
@@ -119,6 +140,7 @@ fun OptionRow(icon: ImageVector, title: String, iconColor: Color = Color.White) 
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Contenedor del icono con fondo más oscuro para contraste
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -128,7 +150,9 @@ fun OptionRow(icon: ImageVector, title: String, iconColor: Color = Color.White) 
                 Icon(icon, null, tint = iconColor)
             }
             Spacer(modifier = Modifier.width(16.dp))
+            // Título de la opción que ocupa el espacio sobrante
             Text(title, color = Color.White, modifier = Modifier.weight(1f), fontSize = 16.sp)
+            // Icono de flecha para indicar que es clicable
             Icon(Icons.Default.ChevronRight, null, tint = Color.Gray)
         }
     }

@@ -28,16 +28,28 @@ import com.example.vinilotfg.ui.AppFooter
 import kotlinx.coroutines.delay
 import androidx.compose.ui.text.font.FontWeight
 
+/**
+ * Pantalla principal de la tienda.
+ * Gestiona el catálogo de vinilos, la búsqueda y el filtrado.
+ *
+ * @param username El nombre del usuario (opcional) pasado desde el login.
+ * @param navController Controlador para gestionar la navegación hacia otras pantallas.
+ * @param viewModel Modelo de vista que provee los datos de los vinilos de forma reactiva.
+ */
 @Composable
 fun StoreScreen(
     username: String?,
-    navController: NavController, // <-- Parámetro añadido para la navegación
+    navController: NavController,
     viewModel: VinylViewModel = viewModel()
 ) {
+    // Observa la lista de vinilos del ViewModel como un estado de Compose
     val vinylList by viewModel.vinyls.collectAsState()
+
+    // Estados locales para la barra de búsqueda y el tipo de visualización
     var searchQuery by remember { mutableStateOf("") }
     var isGrid by remember { mutableStateOf(false) }
 
+    // Lógica de filtrado en tiempo real basada en el nombre o el artista
     val filteredVinyls = vinylList.filter {
         it.nombre.contains(searchQuery, ignoreCase = true) ||
                 it.artista.contains(searchQuery, ignoreCase = true)
@@ -50,12 +62,12 @@ fun StoreScreen(
     )
 
     Scaffold(
-        topBar = { AppHeader(title = "Vinyl Sound") },
-        bottomBar = { AppFooter(navController) } // <-- Pasamos el controlador al Footer
+        topBar = { AppHeader(title = "Vinyl Sound") }, // Cabecera personalizada
+        bottomBar = { AppFooter(navController) }       // Pie de página con botones de navegación
     ) { paddingValues ->
 
+        // Estado de carga: si la lista está vacía, muestra un indicador de progreso
         if (vinylList.isEmpty()) {
-            // Pantalla de carga mientras llegan los datos de la API
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -74,6 +86,7 @@ fun StoreScreen(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Mensaje de bienvenida si el usuario está identificado
                 if (!username.isNullOrEmpty()) {
                     Text(
                         text = "Bienvenido, $username",
@@ -83,7 +96,7 @@ fun StoreScreen(
                     )
                 }
 
-                // Barra de búsqueda
+                // Componente de búsqueda
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -97,12 +110,13 @@ fun StoreScreen(
                     )
                 )
 
+                // Solo muestra el carrusel de destacados si no se está realizando una búsqueda
                 if (searchQuery.isEmpty()) {
                     FeaturedCarousel(vinyls = vinylList.take(5))
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Cabecera del Catálogo con selector de vista
+                // Cabecera de la sección de productos con selector de vista
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -120,12 +134,13 @@ fun StoreScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Lista de productos
+                // Lista optimizada para scroll eficiente (LazyColumn)
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     if (isGrid) {
+                        // Lógica para mostrar los items en cuadrícula (grid) de 2 columnas
                         items(filteredVinyls.chunked(2)) { rowItems ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -136,11 +151,11 @@ fun StoreScreen(
                                         VinylItem(vinyl, true)
                                     }
                                 }
-                                // Si la fila tiene solo 1 item, rellenamos el hueco
                                 if (rowItems.size == 1) Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     } else {
+                        // Vista de lista estándar (una columna)
                         items(filteredVinyls) { vinyl ->
                             VinylItem(vinyl = vinyl, isGrid = false)
                         }
@@ -151,11 +166,14 @@ fun StoreScreen(
     }
 }
 
+/**
+ * Carrusel horizontal que se desplaza automáticamente cada 4 segundos.
+ */
 @Composable
 fun FeaturedCarousel(vinyls: List<Vinyl>) {
     val listState = rememberLazyListState()
 
-    // Auto-scroll del carrusel
+    // Efecto secundario que lanza una corrutina para el desplazamiento automático
     LaunchedEffect(Unit) {
         while (true) {
             delay(4000)
@@ -191,6 +209,10 @@ fun FeaturedCarousel(vinyls: List<Vinyl>) {
     }
 }
 
+/**
+ * Representación visual individual de cada vinilo.
+ * Soporta dos modos: vertical (Grid) u horizontal (List).
+ */
 @Composable
 fun VinylItem(vinyl: Vinyl, isGrid: Boolean) {
     Card(
@@ -200,6 +222,7 @@ fun VinylItem(vinyl: Vinyl, isGrid: Boolean) {
         shape = RoundedCornerShape(12.dp)
     ) {
         if (isGrid) {
+            // Diseño para la cuadrícula
             Column(
                 modifier = Modifier.padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -218,6 +241,7 @@ fun VinylItem(vinyl: Vinyl, isGrid: Boolean) {
                 Text("${vinyl.precio} €", color = Color.Cyan, style = MaterialTheme.typography.bodySmall)
             }
         } else {
+            // Diseño para la lista
             Row(
                 modifier = Modifier.padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically

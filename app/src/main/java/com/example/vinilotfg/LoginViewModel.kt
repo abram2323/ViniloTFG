@@ -11,7 +11,7 @@ class LoginViewModel : ViewModel() {
         private set
 
     fun performLogin(email: String, password: String) {
-        // AQUÍ es donde, en el futuro, harás la llamada a Spring Boot con Retrofit
+        // AQUÍ es donde, en el futuro, se hará la llamada a Spring Boot con Retrofit
         // Por ahora, validamos localmente para que tu app siga funcionando
         if (email.isNotBlank() && password.isNotBlank()) {
             loginStatus = LoginStatus.Success(email)

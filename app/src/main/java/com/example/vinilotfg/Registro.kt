@@ -20,26 +20,34 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.vinilotfg.ui.theme.*
 
+/**
+ * Pantalla de registro de nuevos usuarios.
+ *
+ * @param navController Objeto encargado de gestionar la navegación entre pantallas.
+ */
 @Composable
 fun Registro(navController: NavController) {
 
-    // Estados locales para la UI
+    // Estados reactivos: mantienen el texto escrito por el usuario en tiempo real
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var repeatPassword by remember { mutableStateOf("") }
 
+    // Definición de degradado lineal para el fondo de pantalla
     val fondo = Brush.linearGradient(
         colors = listOf(Color(0xFF4B1173), Color(0xFF1A002D)),
         start = Offset.Zero,
         end = Offset(0f, Float.POSITIVE_INFINITY)
     )
 
+    // Definición de degradado horizontal para el botón principal
     val botonGradiente = Brush.horizontalGradient(
         colors = listOf(Color(0xFFB13CFF), Color(0xFFFF2D6F))
     )
 
+    // Contenedor principal con fondo degradado
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -58,6 +66,7 @@ fun Registro(navController: NavController) {
             Text("Crea tu cuenta", fontSize = 14.sp, color = Color(0xFFC9B4E3))
             Spacer(modifier = Modifier.height(36.dp))
 
+            // Tarjeta contenedora del formulario de registro
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -68,6 +77,7 @@ fun Registro(navController: NavController) {
                 Text("Registro", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 Spacer(modifier = Modifier.height(18.dp))
 
+                // Fila para Nombre y Apellido compartiendo ancho al 50% cada uno mediante .weight(1f)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -89,6 +99,8 @@ fun Registro(navController: NavController) {
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
+
+                // Campos de entrada de datos a ancho completo
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -101,7 +113,7 @@ fun Registro(navController: NavController) {
                     value = password,
                     onValueChange = { password = it },
                     placeholder = { Text("Contraseña") },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = PasswordVisualTransformation(), // Oculta la contraseña
                     modifier = Modifier.fillMaxWidth(),
                     colors = registroTextFieldColors()
                 )
@@ -110,14 +122,14 @@ fun Registro(navController: NavController) {
                     value = repeatPassword,
                     onValueChange = { repeatPassword = it },
                     placeholder = { Text("Repite la contraseña") },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = PasswordVisualTransformation(), // Oculta la repetición de contraseña
                     modifier = Modifier.fillMaxWidth(),
                     colors = registroTextFieldColors()
                 )
 
                 Spacer(modifier = Modifier.height(22.dp))
 
-                // BOTÓN DE REGISTRO
+                // BOTÓN DE REGISTRO con fondo degradado personalizado
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -127,19 +139,22 @@ fun Registro(navController: NavController) {
                     Button(
                         onClick = {
                             if (email.isNotBlank()) {
+                                // Navega a la tienda y limpia el historial de navegación para no poder volver al registro
                                 navController.navigate("store/$email") {
                                     popUpTo("inicio") { inclusive = true }
                                 }
                             }
                         },
                         modifier = Modifier.fillMaxSize(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent) // Fondo transparente para ver el Box
                     ) {
                         Text("Crear cuenta", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Opción para volver atrás en el stack de navegación (pantalla de inicio/login)
                 Text(
                     text = "¿Ya tienes cuenta? Inicia sesión",
                     fontSize = 13.sp,
@@ -149,6 +164,8 @@ fun Registro(navController: NavController) {
             }
 
             Spacer(modifier = Modifier.height(18.dp))
+
+            // Footer legal
             Text(
                 text = "Al registrarte, aceptas nuestros Términos de servicio y Política de privacidad",
                 fontSize = 11.sp,
@@ -159,6 +176,10 @@ fun Registro(navController: NavController) {
     }
 }
 
+/**
+ * Función auxiliar para reutilizar los estilos de color en los OutlinedTextField del registro.
+ * Define colores específicos para el borde, texto y placeholders en estados enfocado/desenfocado.
+ */
 @Composable
 fun registroTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedTextColor = Color.White,
@@ -169,6 +190,9 @@ fun registroTextFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedPlaceholderColor = Color(0xFFBFA7D8)
 )
 
+/**
+ * Vista previa para el diseñador de Android Studio.
+ */
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun RegistroPreview() {
